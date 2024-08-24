@@ -1,4 +1,5 @@
 'use client'
+
 import { useUser, SignedOut, SignedIn, UserButton } from '@clerk/nextjs';
 import {
     AppBar,
@@ -21,7 +22,7 @@ import {
 } from '@mui/material';
 import { db } from '@/firebase';
 import { useRouter } from 'next/navigation';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { doc, getDoc, collection, writeBatch } from 'firebase/firestore';
 import CircularProgress from '@mui/material/CircularProgress';
 
@@ -35,10 +36,21 @@ export default function Generate() {
     const [loading, setLoading] = useState(false); // Loading state
     const router = useRouter();
 
+    useEffect(() => {
+        if (isLoaded && !isSignedIn) {
+            router.push('/sign-in'); // Redirect to the sign-in page if not signed in
+        }
+    }, [isLoaded, isSignedIn, router]);
+
     const handleSubmit = async () => {
+        if (!text.trim()) {
+            alert('Please enter some text to generate flashcards.');
+            return;
+        }
+
         setLoading(true); // Start loading
         try {
-            const response = await fetch('api/generate', {
+            const response = await fetch('/api/generate', {
                 method: 'POST',
                 body: text,
             });
@@ -107,6 +119,10 @@ export default function Generate() {
         router.push("/flashcards"); // Navigate to the flashcards page
     };
 
+    if (!isLoaded || !isSignedIn) {
+        return <CircularProgress />; // Show a loading spinner while checking auth state
+    }
+
     return (
         <Container maxWidth="md">
             <AppBar position="static" sx={{ backgroundColor: '#111' }}>
@@ -141,7 +157,7 @@ export default function Generate() {
                         sx={{ mt: 2 }}
                         onClick={handleSubmit}
                         fullWidth
-                        disabled={loading || !text.trim()} // Disable button while loading or if text is empty
+                        disabled={loading} // Disable button while loading
                     >
                         {loading ? <CircularProgress size={24} color="inherit" /> : 'Submit'}
                     </Button>
