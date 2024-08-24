@@ -141,7 +141,7 @@ export default function Generate() {
                         sx={{ mt: 2 }}
                         onClick={handleSubmit}
                         fullWidth
-                        disabled={loading} // Disable button while loading
+                        disabled={loading || !text.trim()} // Disable button while loading or if text is empty
                     >
                         {loading ? <CircularProgress size={24} color="inherit" /> : 'Submit'}
                     </Button>
